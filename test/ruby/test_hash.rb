@@ -2360,4 +2360,16 @@ class TestHashOnly < Test::Unit::TestCase
       end
     end;
   end
+
+  def test_contain
+    h = { "a": 1, "b": { "b1": 2 } }
+
+    assert_equal(h.contain?({ "a": 1 }), true)
+    assert_equal(h.contain?({ "b1": 2 }), true)
+    assert_equal(h.contain?(1), true)
+
+    assert_equal(h.contain?({ "a": 0 }), false)
+    assert_equal(h.contain?({ "b1": 3 }), false)
+    assert_equal(h.contain?(5), false)
+  end
 end

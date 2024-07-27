@@ -4531,6 +4531,45 @@ rb_hash_any_p(int argc, VALUE *argv, VALUE hash)
     return args[0];
 }
 
+typedef struct {
+    VALUE target;
+    int found;
+} hash_search_args;
+
+static int
+hash_contain_i(VALUE key, VALUE value, hash_search_args *arg)
+{
+    VALUE tmp;
+
+    if (rb_obj_is_kind_of(arg->target, rb_cHash)) {
+        tmp = rb_hash_new();
+        rb_hash_aset(tmp, key, value);
+        if (rb_funcall(arg->target, rb_intern("=="), 1, tmp) == Qtrue) {
+            arg->found = 1;
+            return ST_STOP;
+        }
+    } else if (rb_equal(key, arg->target) == Qtrue || rb_equal(value, arg->target) == Qtrue) {
+        arg->found = 1;
+        return ST_STOP;
+    }
+
+    if (RB_TYPE_P(value, T_HASH)) {
+        rb_hash_foreach(value, (int (*)(ANYARGS))hash_contain_i, (VALUE)arg);
+        if (arg->found) return ST_STOP;
+    }
+
+    return ST_CONTINUE;
+}
+
+static VALUE
+rb_hash_contain(VALUE hash, VALUE target)
+{
+    hash_search_args args = { target, 0 };
+    rb_hash_foreach(hash, (int (*)(ANYARGS))hash_contain_i, (VALUE)&args);
+
+    return args.found ? Qtrue : Qfalse;
+}
+
 /*
  *  call-seq:
  *    hash.dig(key, *identifiers) -> object
@@ -7200,6 +7239,9 @@ Init_Hash(void)
     rb_define_method(rb_cHash, "compare_by_identity?", rb_hash_compare_by_id_p, 0);
 
     rb_define_method(rb_cHash, "any?", rb_hash_any_p, -1);
+
+    rb_define_method(rb_cHash, "contain?", rb_hash_contain, 1);
+
     rb_define_method(rb_cHash, "dig", rb_hash_dig, -1);
 
     rb_define_method(rb_cHash, "<=", rb_hash_le, 1);
