@@ -19,6 +19,11 @@ class TestArray < Test::Unit::TestCase
     assert_instance_of(x.class, y)
   end
 
+  def test_ary_second
+    assert_equal([1, 2].second, 2)
+    assert_equal([1].second, nil)
+  end
+
   def test_percent_i
     assert_equal([:foo, :bar], %i[foo bar])
     assert_equal([:"\"foo"], %i["foo])

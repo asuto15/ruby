@@ -6036,6 +6036,21 @@ int_s_try_convert(VALUE self, VALUE num)
     return rb_check_integer_type(num);
 }
 
+static VALUE
+int_add(VALUE self, VALUE n)
+{
+    if (FIXNUM_P(self) && FIXNUM_P(n)) {
+        /* c = a + b */
+        int a = FIX2INT(self);
+        int b = FIX2INT(n);
+        int c = a + b;
+        VALUE result = INT2NUM(c);
+        return result;
+    } else {
+        return rb_int_plus(self, n);
+    }
+}
+
 /*
  *  Document-class: ZeroDivisionError
  *
@@ -6313,6 +6328,9 @@ Init_Numeric(void)
     rb_define_method(rb_cInteger, ">>", rb_int_rshift, 1);
 
     rb_define_method(rb_cInteger, "digits", rb_int_digits, -1);
+
+
+    rb_define_method(rb_cInteger, "add", int_add, 1);
 
 #define fix_to_s_static(n) do { \
         VALUE lit = rb_fstring_literal(#n); \
